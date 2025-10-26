@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Compteurs synchronisés – Flophilclo</title>
+  <style>
+    :root { --bg:#0b0f14; --card:#121821; --txt:#e6e6e6; --muted:#9aa4b2; --primary:#1e88ff; }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,Arial; background:var(--bg); color:var(--txt); display:flex; min-height:100vh; align-items:center; justify-content:center}
+    .wrap{width:min(96vw,700px); padding:18px}
+    .card{background:var(--card); border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
+    h1{margin:0 0 10px; font-size:1.25rem}
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    input,button,select{font-size:1rem; padding:10px 12px; border-radius:12px; border:1px solid #263041; background:#0f141b; color:var(--txt)}
+    input{min-width:190px}
+    button{cursor:pointer; border:0; background:#202938}
+    button.primary{background:var(--primary); color:white; border:0}
+    .muted{color:var(--muted); font-size:.9rem}
+    .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
+    .panel{background:#0f141b; border:1px solid #263041; border-radius:14px; padding:14px}
+    .panel h2{margin:0 0 6px; font-size:1.05rem}
+    .value{font-size:2.8rem; font-weight:700; margin:8px 0 12px; text-align:center}
+    .btns{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
+    .ok{color:#9cff9c}
+    .err{color:#ff9c9c}
+    .code{font-family:monospace; background:#0e1826; padding:6px 10px; border-radius:8px; border:1px dashed #2b3c54}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Compteurs synchronisés – Flophilclo</h1>
+      <div class="muted" id="status">Prêt – crée une salle ou rejoins-en une.</div>
+
+      <!-- Création / connexion à une salle -->
+      <div class="row" style="margin-top:10px;">
+        <button id="create" class="primary">Créer une salle</button>
+        <input id="code" placeholder="Code salle (ex: 4M7QK9)" />
+        <button id="join">Rejoindre</button>
+        <select id="role" title="Votre rôle">
+          <option value="J1">Je suis J1</option>
+          <option value="J2">Je suis J2</option>
+        </select>
+      </div>
+
+      <div class="muted" style="margin-top:8px;">
+        Code salle : <span id="roomCode" class="code">—</span>
+        &nbsp;•&nbsp; Dernière MAJ : <span id="last">—</span>
+      </div>
+
+      <!-- Deux compteurs liés -->
+      <div class="grid">
+        <div class="panel">
+          <h2>Joueur 1</h2>
+          <div id="v1" class="value">0</div>
+          <div class="btns">
+            <button data-act="J1:-5">–5</button>
+            <button data-act="J1:-1">–1</button>
+            <button class="primary" data-act="J1:+1">+1</button>
+            <button data-act="J1:+5">+5</button>
+            <button data-act="J1:reset">Reset</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Joueur 2</h2>
+          <div id="v2" class="value">0</div>
+          <div class="btns">
+            <button data-act="J2:-5">–5</button>
+            <button data-act="J2:-1">–1</button>
+            <button class="primary" data-act="J2:+1">+1</button>
+            <button data-act="J2:+5">+5</button>
+            <button data-act="J2:reset">Reset</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="muted" style="margin-top:10px;">
+        Astuce : un téléphone **crée** la salle (bouton bleu), l’autre **entre le code** puis « Rejoindre ».  
+        Seul J1 peut modifier J1, et seul J2 peut modifier J2 (verrouillage léger).
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase via CDN (simple et immédiat) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import {
+      getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction, serverTimestamp
+    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    // ⚙️ Ton projet (valeurs déjà testées)
+    const firebaseConfig = {
+      apiKey: "AIzaSyDB534z5JxxP8Sa29wQ9QjjOsHgK1Tfo1k",
+      authDomain: "flophilclo-compteur.firebaseapp.com",
+      projectId: "flophilclo-compteur",
+      storageBucket: "flophilclo-compteur.appspot.com",
+      messagingSenderId: "399568726801",
+      appId: "1:399568726801:web:22589d036e369258323ab0"
+    };
+
+    // 🔌 Init
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // 🔧 UI refs
+    const $status = document.getElementById("status");
+    const $roomCode = document.getElementById("roomCode");
+    const $last = document.getElementById("last");
+    const $v1 = document.getElementById("v1");
+    const $v2 = document.getElementById("v2");
+    const $code = document.getElementById("code");
+    const $role = document.getElementById("role");
+    const $create = document.getElementById("create");
+    const $join = document.getElementById("join");
+
+    let roomRef = null;
+    let unsub = null;
+
+    function randCode(len=6){
+      const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+      return Array.from({length:len},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
+    }
+
+    async function createRoom(){
+      const code = randCode(6);
+      roomRef = doc(db, "rooms", code);
+      await setDoc(roomRef, { code, j1:0, j2:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
+      $roomCode.textContent = code;
+      $code.value = code;
+      listenRoom();
+    }
+
+    async function joinRoom(code){
+      if(!code) return;
+      roomRef = doc(db, "rooms", code.toUpperCase());
+      const snap = await getDoc(roomRef);
+      if(!snap.exists()){
+        await setDoc(roomRef, { code:code.toUpperCase(), j1:0, j2:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
+      }
+      $roomCode.textContent = code.toUpperCase();
+      listenRoom();
+    }
+
+    function listenRoom(){
+      if (unsub) unsub();
+      unsub = onSnapshot(roomRef, (snap)=>{
+        if(!snap.exists()) return;
+        const d = snap.data();
+        $v1.textContent = Number(d.j1||0);
+        $v2.textContent = Number(d.j2||0);
+        $last.textContent = d.updatedAt?.toDate?.().toLocaleTimeString?.() ?? "—";
+        $status.textContent = "Connecté à la salle « "+d.code+" »";
+        $status.className = "ok";
+      }, (err)=>{
+        $status.textContent = "Erreur écoute : "+err.message;
+        $status.className = "err";
+      });
+    }
+
+    async function applyAction(target, action){
+      if(!roomRef){ alert("Crée ou rejoins une salle d'abord."); return; }
+      await runTransaction(db, async (tx)=>{
+        const snap = await tx.get(roomRef);
+        let j1 = 0, j2 = 0;
+        if (snap.exists()){ j1 = Number(snap.data().j1||0); j2 = Number(snap.data().j2||0); }
+
+        const apply = (current, op)=>{
+          if (op === "reset") return 0;
+          const n = parseInt(op,10);
+          if (isNaN(n)) return current;
+          return Math.max(0, current + n); // jamais négatif
+        };
+
+        if (target==="J1") j1 = apply(j1, action);
+        if (target==="J2") j2 = apply(j2, action);
+
+        tx.set(roomRef, { j1, j2, updatedAt: serverTimestamp() }, { merge:true });
+      });
+    }
+
+    // 🎛️ Boutons compteurs
+    document.querySelectorAll("[data-act]").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const [who, op] = btn.dataset.act.split(":"); // "J1:+1"
+        const myRole = $role.value;
+        // Verrouillage léger : seul le rôle correspondant peut modifier son compteur
+        if (who !== myRole) {
+          alert("Seul "+who+" peut modifier ce compteur. Change ton rôle si besoin.");
+          return;
+        }
+        applyAction(who, op);
+      });
+    });
+
+    // 🔘 Création / Rejoindre
+    $create.addEventListener("click", createRoom);
+    $join.addEventListener("click", ()=> joinRoom($code.value.trim()));
+  </script>
+</body>
+</html>
