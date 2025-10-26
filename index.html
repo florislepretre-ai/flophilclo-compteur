@@ -20,7 +20,7 @@
     .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
     .panel{background:#0f141b; border:1px solid #263041; border-radius:14px; padding:14px}
     .panel h2{margin:0 0 6px; font-size:1.05rem}
-    .value{font-size:2.8rem; font-weight:700; margin:8px 0 12px; text-align:center}
+    .value{font-size:2.8rem; font-weight:700; margin:8px 0 12px; text-align:center; font-family:monospace; letter-spacing:2px}
     .btns{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
     .ok{color:#9cff9c}
     .err{color:#ff9c9c}
@@ -33,7 +33,6 @@
       <h1>Compteurs synchronisés – Flophilclo</h1>
       <div class="muted" id="status">Prêt – crée une salle ou rejoins-en une.</div>
 
-      <!-- Création / connexion à une salle -->
       <div class="row" style="margin-top:10px;">
         <button id="create" class="primary">Créer une salle</button>
         <input id="code" placeholder="Code salle (ex: 4M7QK9)" />
@@ -49,11 +48,10 @@
         &nbsp;•&nbsp; Dernière MAJ : <span id="last">—</span>
       </div>
 
-      <!-- Deux compteurs liés -->
       <div class="grid">
         <div class="panel">
           <h2>Joueur 1</h2>
-          <div id="v1" class="value">0</div>
+          <div id="v1" class="value">0000</div>
           <div class="btns">
             <button data-act="J1:-5">–5</button>
             <button data-act="J1:-1">–1</button>
@@ -64,7 +62,7 @@
         </div>
         <div class="panel">
           <h2>Joueur 2</h2>
-          <div id="v2" class="value">0</div>
+          <div id="v2" class="value">0000</div>
           <div class="btns">
             <button data-act="J2:-5">–5</button>
             <button data-act="J2:-1">–1</button>
@@ -76,20 +74,18 @@
       </div>
 
       <div class="muted" style="margin-top:10px;">
-        Astuce : un téléphone **crée** la salle (bouton bleu), l’autre **entre le code** puis « Rejoindre ».  
-        Seul J1 peut modifier J1, et seul J2 peut modifier J2 (verrouillage léger).
+        Astuce : un téléphone **crée** la salle, l’autre **rejoint** avec le code.  
+        Seul J1 peut modifier J1, et seul J2 peut modifier J2.
       </div>
     </div>
   </div>
 
-  <!-- Firebase via CDN (simple et immédiat) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import {
       getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction, serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    // ⚙️ Ton projet (valeurs déjà testées)
     const firebaseConfig = {
       apiKey: "AIzaSyDB534z5JxxP8Sa29wQ9QjjOsHgK1Tfo1k",
       authDomain: "flophilclo-compteur.firebaseapp.com",
@@ -99,11 +95,9 @@
       appId: "1:399568726801:web:22589d036e369258323ab0"
     };
 
-    // 🔌 Init
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
-    // 🔧 UI refs
     const $status = document.getElementById("status");
     const $roomCode = document.getElementById("roomCode");
     const $last = document.getElementById("last");
@@ -147,8 +141,9 @@
       unsub = onSnapshot(roomRef, (snap)=>{
         if(!snap.exists()) return;
         const d = snap.data();
-        $v1.textContent = Number(d.j1||0);
-        $v2.textContent = Number(d.j2||0);
+        // affichage à 4 chiffres
+        $v1.textContent = String(d.j1 || 0).padStart(4, "0");
+        $v2.textContent = String(d.j2 || 0).padStart(4, "0");
         $last.textContent = d.updatedAt?.toDate?.().toLocaleTimeString?.() ?? "—";
         $status.textContent = "Connecté à la salle « "+d.code+" »";
         $status.className = "ok";
@@ -169,7 +164,7 @@
           if (op === "reset") return 0;
           const n = parseInt(op,10);
           if (isNaN(n)) return current;
-          return Math.max(0, current + n); // jamais négatif
+          return Math.max(0, current + n);
         };
 
         if (target==="J1") j1 = apply(j1, action);
@@ -179,12 +174,10 @@
       });
     }
 
-    // 🎛️ Boutons compteurs
     document.querySelectorAll("[data-act]").forEach(btn=>{
       btn.addEventListener("click", ()=>{
-        const [who, op] = btn.dataset.act.split(":"); // "J1:+1"
+        const [who, op] = btn.dataset.act.split(":");
         const myRole = $role.value;
-        // Verrouillage léger : seul le rôle correspondant peut modifier son compteur
         if (who !== myRole) {
           alert("Seul "+who+" peut modifier ce compteur. Change ton rôle si besoin.");
           return;
@@ -193,7 +186,6 @@
       });
     });
 
-    // 🔘 Création / Rejoindre
     $create.addEventListener("click", createRoom);
     $join.addEventListener("click", ()=> joinRoom($code.value.trim()));
   </script>
