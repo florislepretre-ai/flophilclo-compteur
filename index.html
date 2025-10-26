@@ -5,152 +5,138 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Compteurs synchronisés – Flophilclo</title>
 <style>
-:root {--txt:#fff;--gold:#f0b64b;}
+:root {--txt:#e6e6e6;--gold:#f0b64b;}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{
   height:100%;
   font-family:system-ui,Arial;
   color:var(--txt);
-  overflow:hidden;
-  background:#000;
-}
-
-/* 🌄 IMAGE DE FOND PLEINE PAGE ET VIVE */
-.bg{
-  position:fixed; inset:0;
-  z-index:0;
-  overflow:hidden;
-  pointer-events:none;
-}
-.bg img{
-  position:absolute;
-  top:50%; left:50%;
-  transform:translate(-50%,-50%) rotate(0deg);
-  width:100vw; height:100vh;
-  object-fit:cover;
-  filter:brightness(2) contrast(1.3) saturate(1.5); /* 💡 plus clair et coloré */
-  animation:spin 180s linear infinite;
-}
-@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
-
-/* 🧮 INTERFACE AU-DESSUS DU FOND */
-.wrap{
-  position:relative;
-  z-index:2;
-  height:100%;
+  background:#0b0f14;
   display:flex;
   align-items:center;
   justify-content:center;
+  overflow:hidden;
 }
+.wrap{width:min(96vw,760px);padding:18px}
 .card{
-  background:rgba(0,0,0,0.4);
-  border:1px solid rgba(240,182,75,0.6);
+  background:#121821;
   border-radius:16px;
   padding:20px;
-  box-shadow:0 0 25px rgba(0,0,0,0.6);
-  width:min(95vw,760px);
-  backdrop-filter: blur(4px);
+  box-shadow:0 10px 30px rgba(0,0,0,.35);
+  position:relative;
+  overflow:hidden;
+  z-index:2;
 }
 h1{
-  margin-bottom:10px;
-  background:linear-gradient(90deg,#ffd27a,#fff8b3,#ffd27a);
+  margin:0 0 10px;
+  font-size:1.25rem;
+  background:linear-gradient(90deg,#ffd27a,#ffe8b3,#ffd27a);
   -webkit-background-clip:text;
   color:transparent;
   text-align:center;
 }
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
-.panel{
-  background:rgba(20,20,20,0.5);
-  border:1px solid rgba(240,182,75,0.4);
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+input,button,select{
+  font-size:1rem;
+  padding:10px 12px;
   border-radius:12px;
+  border:1px solid #263041;
+  background:#0f141b;
+  color:var(--txt);
+}
+button{cursor:pointer;border:0;background:#202938}
+button.primary{background:var(--gold);color:#1a1307;font-weight:700}
+.muted{color:#9aa4b2;font-size:.9rem;text-align:center;margin-top:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.panel{
+  background:#0f141b;
+  border:1px solid #3a2a10;
+  border-radius:14px;
   padding:14px;
   text-align:center;
-  box-shadow:0 0 10px rgba(0,0,0,0.5);
 }
-.value{font-size:2.8rem;font-weight:700;margin:10px 0;text-shadow:0 0 6px #000;}
-.btns{display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
-button{font-size:1rem;padding:10px 12px;border-radius:10px;border:0;cursor:pointer}
-button.primary{background:var(--gold);color:#1a1307;font-weight:700}
-input,select{font-size:1rem;padding:10px;border-radius:10px;background:#111;border:1px solid #333;color:#fff}
-.row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:8px}
-.muted{color:#fff;text-align:center;margin-top:8px;font-size:.9rem;text-shadow:0 0 5px #000;}
-.diceBox{text-align:center;margin-top:12px}
+.value{
+  font-size:2.8rem;
+  font-weight:700;
+  margin:8px 0 12px;
+  text-align:center;
+}
+.btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.diceBox{text-align:center;margin-top:16px}
 .diceFace{
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  width:70px;height:70px;
+  width:68px;height:68px;
   border-radius:12px;
-  background:rgba(0,0,0,0.6);
+  border:1px solid #2a3446;
+  background:#0e1622;
   font-size:2rem;
   font-weight:800;
-  color:#fff;
-  margin-top:8px;
-  border:1px solid #f0b64b;
-  box-shadow:0 0 10px rgba(0,0,0,0.7);
+  box-shadow:inset 0 0 10px rgba(0,0,0,.35);
 }
-.foot{text-align:center;margin-top:10px;color:#f0b64b;font-size:.85rem;text-shadow:0 0 6px #000;}
+.foot{
+  text-align:center;
+  color:#ccb06a;
+  font-size:.85rem;
+  opacity:.9;
+  text-shadow:0 1px 0 rgba(0,0,0,.4);
+  margin-top:12px;
+}
 </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h1>Compteurs synchronisés – Flophilclo</h1>
 
-<!-- 🌄 IMAGE DE FOND -->
-<div class="bg">
-  <img src="elements.png.png" alt="Éléments Flophilclo">
-</div>
+      <div class="row">
+        <button id="create" class="primary">Créer une salle</button>
+        <input id="code" placeholder="Code salle (ex: 4M7QK9)">
+        <button id="join">Rejoindre</button>
+        <select id="role">
+          <option value="J1">Je suis J1</option>
+          <option value="J2">Je suis J2</option>
+        </select>
+      </div>
 
-<!-- 🧮 INTERFACE -->
-<div class="wrap">
-  <div class="card">
-    <h1>Compteurs synchronisés – Flophilclo</h1>
+      <div class="muted" id="status">Prêt – crée une salle ou rejoins-en une.</div>
+      <div class="muted">Code salle : <span id="roomCode">—</span> • Dernière MAJ : <span id="last">—</span></div>
 
-    <div class="row">
-      <button id="create" class="primary">Créer une salle</button>
-      <input id="code" placeholder="Code salle (ex: 4M7QK9)">
-      <button id="join">Rejoindre</button>
-      <select id="role">
-        <option value="J1">Je suis J1</option>
-        <option value="J2">Je suis J2</option>
-      </select>
-    </div>
+      <div class="grid">
+        <div class="panel">
+          <h2>Joueur 1</h2>
+          <div id="v1" class="value">0000</div>
+          <div class="btns">
+            <button data-act="J1:-5">–5</button>
+            <button data-act="J1:-1">–1</button>
+            <button class="primary" data-act="J1:+1">+1</button>
+            <button data-act="J1:+5">+5</button>
+            <button data-act="J1:reset">Reset</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h2>Joueur 2</h2>
+          <div id="v2" class="value">0000</div>
+          <div class="btns">
+            <button data-act="J2:-5">–5</button>
+            <button data-act="J2:-1">–1</button>
+            <button class="primary" data-act="J2:+1">+1</button>
+            <button data-act="J2:+5">+5</button>
+            <button data-act="J2:reset">Reset</button>
+          </div>
 
-    <div class="muted" id="status">Prêt – crée une salle ou rejoins-en une.</div>
-    <div class="muted">Code salle : <span id="roomCode">—</span> • Dernière MAJ : <span id="last">—</span></div>
-
-    <div class="grid">
-      <div class="panel">
-        <h2>Joueur 1</h2>
-        <div id="v1" class="value">0000</div>
-        <div class="btns">
-          <button data-act="J1:-5">–5</button>
-          <button data-act="J1:-1">–1</button>
-          <button class="primary" data-act="J1:+1">+1</button>
-          <button data-act="J1:+5">+5</button>
-          <button data-act="J1:reset">Reset</button>
+          <!-- 🎲 DÉ -->
+          <div class="diceBox">
+            <button id="roll" class="primary">🎲 Lancer le dé</button>
+            <div id="die" class="diceFace">—</div>
+          </div>
         </div>
       </div>
-      <div class="panel">
-        <h2>Joueur 2</h2>
-        <div id="v2" class="value">0000</div>
-        <div class="btns">
-          <button data-act="J2:-5">–5</button>
-          <button data-act="J2:-1">–1</button>
-          <button class="primary" data-act="J2:+1">+1</button>
-          <button data-act="J2:+5">+5</button>
-          <button data-act="J2:reset">Reset</button>
-        </div>
 
-        <!-- 🎲 DÉ -->
-        <div class="diceBox">
-          <button id="roll" class="primary">🎲 Lancer le dé</button>
-          <div id="die" class="diceFace">—</div>
-        </div>
-      </div>
+      <div class="foot">© 2025 Flophilclo</div>
     </div>
-
-    <div class="foot">© 2025 Flophilclo</div>
   </div>
-</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
