@@ -28,7 +28,7 @@ html,body{
   transform:translate(-50%,-50%) rotate(0deg);
   width:100vw; height:100vh;
   object-fit:cover;
-  filter:brightness(2.1) contrast(1.3) saturate(1.4); /* 💡 plus clair et coloré */
+  filter:brightness(2) contrast(1.3) saturate(1.5); /* 💡 plus clair et coloré */
   animation:spin 180s linear infinite;
 }
 @keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
@@ -43,7 +43,7 @@ html,body{
   justify-content:center;
 }
 .card{
-  background:rgba(0,0,0,0.35); /* transparence plus légère */
+  background:rgba(0,0,0,0.4);
   border:1px solid rgba(240,182,75,0.6);
   border-radius:16px;
   padding:20px;
@@ -60,7 +60,7 @@ h1{
 }
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
 .panel{
-  background:rgba(20,20,20,0.45);
+  background:rgba(20,20,20,0.5);
   border:1px solid rgba(240,182,75,0.4);
   border-radius:12px;
   padding:14px;
@@ -96,8 +96,7 @@ input,select{font-size:1rem;padding:10px;border-radius:10px;background:#111;bord
 
 <!-- 🌄 IMAGE DE FOND -->
 <div class="bg">
-  <img src="elements.png" alt="Éléments Flophilclo"
-       onerror="this.onerror=null;this.src='5a13a267-5f4c-4615-835d-a908006ab3da.png';">
+  <img src="elements.png.png" alt="Éléments Flophilclo">
 </div>
 
 <!-- 🧮 INTERFACE -->
