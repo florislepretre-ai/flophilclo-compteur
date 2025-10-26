@@ -8,17 +8,31 @@
     :root { --bg:#0b0f14; --card:#121821; --txt:#e6e6e6; --muted:#9aa4b2; --gold:#f0b64b; }
     *{box-sizing:border-box}
     body{
-      margin:0; font-family:system-ui,Arial; color:var(--txt); min-height:100vh;
-      display:flex; align-items:center; justify-content:center;
+      margin:0; font-family:system-ui,Arial; color:var(--txt);
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      background:#000;
       background:
-        radial-gradient(1200px 800px at 50% -10%, rgba(255,215,128,.10), transparent 60%),
-        radial-gradient(900px 700px at 110% 30%, rgba(120,180,255,.10), transparent 60%),
-        radial-gradient(900px 700px at -10% 70%, rgba(160,255,190,.08), transparent 60%),
-        radial-gradient(900px 700px at 50% 120%, rgba(220,180,120,.10), transparent 60%),
+        radial-gradient(1000px 600px at 50% -10%, rgba(255,215,128,.10), transparent 60%),
+        radial-gradient(800px 600px at 110% 30%, rgba(120,180,255,.10), transparent 60%),
+        radial-gradient(800px 600px at -10% 70%, rgba(160,255,190,.08), transparent 60%),
+        radial-gradient(800px 600px at 50% 120%, rgba(220,180,120,.10), transparent 60%),
         var(--bg);
     }
     .wrap{width:min(96vw,760px); padding:18px}
-    .card{background:var(--card); border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.35); position:relative; overflow:hidden}
+    .card{
+      background:var(--card); border-radius:16px; padding:20px;
+      box-shadow:0 10px 30px rgba(0,0,0,.35);
+      position:relative; overflow:hidden;
+      z-index:2;
+    }
+
+    /* 🌟 LÉGER VOILE pour lisibilité */
+    .card::before{
+      content:"";
+      position:absolute; inset:0; z-index:1;
+      pointer-events:none;
+      background: radial-gradient(80% 60% at 50% 20%, rgba(0,0,0,.10), rgba(0,0,0,.35));
+    }
 
     h1{
       margin:0 0 10px; font-size:1.25rem;
@@ -33,13 +47,10 @@
     .muted{color:var(--muted); font-size:.9rem}
     .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
 
-    /* Panneaux + liseré doré */
     .panel{
       background:#0f141b; border:1px solid #3a2a10; border-radius:14px; padding:14px;
       box-shadow:0 10px 30px rgba(0,0,0,.25), inset 0 0 0 1px rgba(255,215,128,.12);
-      transition: box-shadow .2s ease, border-color .2s ease;
     }
-    .panel:hover{ border-color:#6a531e; box-shadow:0 12px 34px rgba(0,0,0,.28), inset 0 0 0 1px rgba(255,215,128,.18); }
     .panel h2{margin:0 0 6px; font-size:1.05rem}
     .value{font-size:2.8rem; font-weight:700; margin:8px 0 12px; text-align:center}
     .btns{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
@@ -50,26 +61,37 @@
     /* Logo */
     .branding{
       position:absolute; top:10px; left:10px; display:flex; align-items:center; gap:10px;
-      z-index:2; padding:6px 10px; border-radius:12px; background:rgba(0,0,0,.25); backdrop-filter: blur(4px);
+      z-index:3; padding:6px 10px; border-radius:12px; background:rgba(0,0,0,.25); backdrop-filter: blur(4px);
     }
     .branding img{height:32px; width:auto; display:block}
     .branding .mark{font-weight:800; letter-spacing:.3px; color:#ffd27a}
 
-    /* IMAGE TOURNANTE */
-    .wheel-wrap{
-      position:absolute; top:10px; right:10px; z-index:2;
-      display:flex; flex-direction:column; align-items:flex-end; gap:8px;
+    /* 🌄 IMAGE TOURNANTE ENTIÈRE ET LUMINEUSE */
+    .image-rotation{
+      position:absolute; top:0; left:0; width:100%; height:100%;
+      overflow:hidden;
+      z-index:0;
+      opacity:1; /* ✅ Pleine visibilité */
+      pointer-events:none;
     }
-    .wheel-controls{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
-    .wheel-img{
-      width:110px; height:110px; border-radius:50%;
-      overflow:hidden; box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
-      animation: spin 180s linear infinite;  /* 180 s par tour, sens horaire */
-      background:#0d1420;
+    .image-rotation img{
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%, -50%) rotate(0deg);
+      width:auto; height:90%;
+      object-fit:contain;
+      transform-origin:center center;
+      filter: brightness(1.2) contrast(1.05) saturate(1.1); /* 💡 boost */
+      animation: spin 180s linear infinite;
     }
-    .wheel-img.pause{ animation-play-state: paused; }
-    .wheel-img img{ width:100%; height:100%; object-fit:cover; }
-    @keyframes spin { to { transform: rotate(360deg); } }
+    .image-rotation.pause img{ animation-play-state: paused; }
+    @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
+
+    .controls-top{
+      position:absolute; top:10px; right:10px; z-index:3;
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;
+      background:rgba(0,0,0,.3); border-radius:12px; padding:6px 10px; backdrop-filter:blur(4px);
+    }
 
     /* Dé */
     .diceBox{margin-top:16px; text-align:center}
@@ -84,38 +106,36 @@
     .foot{
       position:absolute; left:14px; bottom:10px; color:#ccb06a; font-size:.85rem; opacity:.9;
       text-shadow:0 1px 0 rgba(0,0,0,.4);
-    }
-
-    @media (max-width:560px){
-      .wheel-img{width:86px; height:86px}
-      .branding{transform: scale(.95); transform-origin: top left}
+      z-index:3;
     }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
-      <!-- LOGO -->
+
+      <!-- 🌈 Image des 4 éléments qui tourne -->
+      <div id="rotatingImage" class="image-rotation">
+        <img src="elements.png" alt="Image des éléments Flophilclo"
+             onerror="this.onerror=null; this.src='elements.jpg';">
+      </div>
+
+      <!-- Contrôles -->
+      <div class="controls-top">
+        <button id="toggleWheel">Masquer l’image</button>
+        <button id="pausePlay">Pause</button>
+        <select id="speedSel">
+          <option value="180">180 s / tour</option>
+          <option value="120">120 s / tour</option>
+          <option value="60">60 s / tour</option>
+          <option value="30">30 s / tour</option>
+        </select>
+      </div>
+
+      <!-- Logo -->
       <div class="branding" title="Flophilclo">
         <img src="logo-flophilclo.png" alt="Logo Flophilclo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'">
         <span class="mark" style="display:none">Flophilclo</span>
-      </div>
-
-      <!-- IMAGE DES 4 ÉLÉMENTS QUI TOURNE -->
-      <div class="wheel-wrap">
-        <div class="wheel-controls">
-          <button id="toggleWheel">Masquer l’image</button>
-          <button id="pausePlay">Pause</button>
-          <select id="speedSel" title="Vitesse">
-            <option value="180">180 s / tour</option>
-            <option value="120">120 s / tour</option>
-            <option value="60">60 s / tour</option>
-            <option value="30">30 s / tour</option>
-          </select>
-        </div>
-        <div id="wheel" class="wheel-img" aria-label="Éléments Flophilclo">
-          <img src="elements.png" alt="Image des éléments" />
-        </div>
       </div>
 
       <h1>Compteurs synchronisés – Flophilclo</h1>
@@ -126,7 +146,7 @@
         <button id="create" class="primary">Créer une salle</button>
         <input id="code" placeholder="Code salle (ex: 4M7QK9)" />
         <button id="join">Rejoindre</button>
-        <select id="role" title="Votre rôle">
+        <select id="role">
           <option value="J1">Je suis J1</option>
           <option value="J2">Je suis J2</option>
         </select>
@@ -137,7 +157,7 @@
         &nbsp;•&nbsp; Dernière MAJ : <span id="last">—</span>
       </div>
 
-      <!-- Deux compteurs -->
+      <!-- Compteurs -->
       <div class="grid">
         <div class="panel">
           <h2>Joueur 1</h2>
@@ -150,6 +170,7 @@
             <button data-act="J1:reset">Reset</button>
           </div>
         </div>
+
         <div class="panel">
           <h2>Joueur 2</h2>
           <div id="v2" class="value">0000</div>
@@ -161,7 +182,7 @@
             <button data-act="J2:reset">Reset</button>
           </div>
 
-          <!-- Dé animé -->
+          <!-- Dé -->
           <div class="diceBox">
             <button id="roll" class="primary">🎲 Lancer le dé</button>
             <div id="die" class="diceFace">—</div>
@@ -174,12 +195,11 @@
         Seul J1 peut modifier J1, et seul J2 peut modifier J2.
       </div>
 
-      <!-- Copyright -->
       <div class="foot">© 2025 Flophilclo</div>
     </div>
   </div>
 
-  <!-- Firebase via CDN -->
+  <!-- Firebase + script -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -194,9 +214,8 @@
     };
 
     const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    const db = getFirestore(app);
 
-    // UI refs
     const $status = document.getElementById("status");
     const $roomCode = document.getElementById("roomCode");
     const $last = document.getElementById("last");
@@ -207,116 +226,102 @@
     const $create = document.getElementById("create");
     const $join = document.getElementById("join");
 
-    // Image tournante controls
-    const wheel = document.getElementById("wheel");
-    const toggleWheelBtn = document.getElementById("toggleWheel");
-    const pausePlayBtn = document.getElementById("pausePlay");
-    const speedSel = document.getElementById("speedSel");
-
     let roomRef = null;
     let unsub = null;
 
-    const fmt4 = (n)=> String(n ?? 0).padStart(4,"0");
+    const fmt4 = n => String(n ?? 0).padStart(4, "0");
 
-    function randCode(len=6){
-      const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-      return Array.from({length:len},()=>chars[Math.floor(Math.random()*chars.length)]).join("");
-    }
-
-    async function createRoom(){
-      const code = randCode(6);
+    async function createRoom() {
+      const code = Math.random().toString(36).substring(2, 8).toUpperCase();
       roomRef = doc(db, "rooms", code);
-      await setDoc(roomRef, { code, j1:0, j2:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
+      await setDoc(roomRef, { code, j1: 0, j2: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
       $roomCode.textContent = code;
       $code.value = code;
       listenRoom();
     }
 
-    async function joinRoom(code){
-      if(!code) return;
+    async function joinRoom(code) {
+      if (!code) return;
       roomRef = doc(db, "rooms", code.toUpperCase());
       const snap = await getDoc(roomRef);
-      if(!snap.exists()){
-        await setDoc(roomRef, { code:code.toUpperCase(), j1:0, j2:0, createdAt:serverTimestamp(), updatedAt:serverTimestamp() });
+      if (!snap.exists()) {
+        await setDoc(roomRef, { code: code.toUpperCase(), j1: 0, j2: 0, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
       }
       $roomCode.textContent = code.toUpperCase();
       listenRoom();
     }
 
-    function listenRoom(){
+    function listenRoom() {
       if (unsub) unsub();
-      unsub = onSnapshot(roomRef, (snap)=>{
-        if(!snap.exists()) return;
+      unsub = onSnapshot(roomRef, (snap) => {
+        if (!snap.exists()) return;
         const d = snap.data();
         $v1.textContent = fmt4(d.j1 || 0);
         $v2.textContent = fmt4(d.j2 || 0);
         $last.textContent = d.updatedAt?.toDate?.().toLocaleTimeString?.() ?? "—";
-        $status.textContent = "Connecté à la salle « "+d.code+" »";
+        $status.textContent = "Connecté à la salle « " + d.code + " »";
         $status.className = "ok";
-      }, (err)=>{
-        $status.textContent = "Erreur écoute : "+err.message;
-        $status.className = "err";
       });
     }
 
-    async function applyAction(target, action){
-      if(!roomRef){ alert("Crée ou rejoins une salle d'abord."); return; }
-      await runTransaction(db, async (tx)=>{
+    async function applyAction(target, action) {
+      if (!roomRef) { alert("Crée ou rejoins une salle d'abord."); return; }
+      await runTransaction(db, async (tx) => {
         const snap = await tx.get(roomRef);
         let j1 = 0, j2 = 0;
-        if (snap.exists()){ j1 = Number(snap.data().j1||0); j2 = Number(snap.data().j2||0); }
-
-        const apply = (current, op)=>{
-          if (op === "reset") return 0;
-          const n = parseInt(op,10);
-          if (isNaN(n)) return current;
-          return Math.max(0, current + n);
-        };
-
-        if (target==="J1") j1 = apply(j1, action);
-        if (target==="J2") j2 = apply(j2, action);
-
-        tx.set(roomRef, { j1, j2, updatedAt: serverTimestamp() }, { merge:true });
+        if (snap.exists()) { j1 = Number(snap.data().j1 || 0); j2 = Number(snap.data().j2 || 0); }
+        const apply = (c, op) => op === "reset" ? 0 : Math.max(0, c + parseInt(op, 10) || 0);
+        if (target === "J1") j1 = apply(j1, action);
+        if (target === "J2") j2 = apply(j2, action);
+        tx.set(roomRef, { j1, j2, updatedAt: serverTimestamp() }, { merge: true });
       });
     }
 
-    document.querySelectorAll("[data-act]").forEach(btn=>{
-      btn.addEventListener("click", ()=>{
+    document.querySelectorAll("[data-act]").forEach(btn => {
+      btn.addEventListener("click", () => {
         const [who, op] = btn.dataset.act.split(":");
         const myRole = $role.value;
-        if (who !== myRole) {
-          alert("Seul "+who+" peut modifier ce compteur. Change ton rôle si besoin.");
-          return;
-        }
+        if (who !== myRole) return alert("Seul " + who + " peut modifier ce compteur.");
         applyAction(who, op);
       });
     });
 
     $create.addEventListener("click", createRoom);
-    $join.addEventListener("click", ()=> joinRoom($code.value.trim()));
+    $join.addEventListener("click", () => joinRoom($code.value.trim()));
 
-    // Contrôles image tournante
-    toggleWheelBtn.addEventListener("click", ()=>{
+    // --- Image tournante ---
+    const wheel = document.getElementById("rotatingImage");
+    const toggleWheelBtn = document.getElementById("toggleWheel");
+    const pausePlayBtn = document.getElementById("pausePlay");
+    const speedSel = document.getElementById("speedSel");
+
+    toggleWheelBtn.addEventListener("click", () => {
       const visible = wheel.style.display !== "none";
       wheel.style.display = visible ? "none" : "block";
       toggleWheelBtn.textContent = visible ? "Afficher l’image" : "Masquer l’image";
     });
-    pausePlayBtn.addEventListener("click", ()=>{
+
+    pausePlayBtn.addEventListener("click", () => {
       const paused = wheel.classList.toggle("pause");
       pausePlayBtn.textContent = paused ? "Lecture" : "Pause";
     });
-    speedSel.addEventListener("change", ()=>{
-      const s = parseInt(speedSel.value,10) || 180;
-      wheel.style.animationDuration = s + "s";
+
+    speedSel.addEventListener("change", () => {
+      const s = parseInt(speedSel.value, 10) || 180;
+      wheel.querySelector("img").style.animationDuration = s + "s";
     });
 
-    // Dé animé
+    // --- Dé ---
     const rollBtn = document.getElementById("roll");
     const dieOut = document.getElementById("die");
-    if (rollBtn && dieOut){
-      rollBtn.addEventListener("click", ()=>{
-        let t=0; const anim = setInterval(()=>{ dieOut.textContent = (1+Math.floor(Math.random()*6)); if(++t>10){clearInterval(anim)} }, 60);
-        setTimeout(()=> dieOut.textContent = (1+Math.floor(Math.random()*6)), 700);
+    if (rollBtn && dieOut) {
+      rollBtn.addEventListener("click", () => {
+        let t = 0;
+        const anim = setInterval(() => {
+          dieOut.textContent = (1 + Math.floor(Math.random() * 6));
+          if (++t > 10) clearInterval(anim);
+        }, 60);
+        setTimeout(() => dieOut.textContent = (1 + Math.floor(Math.random() * 6)), 700);
       });
     }
   </script>
