@@ -5,34 +5,115 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Compteurs synchronisés – Flophilclo</title>
   <style>
-    :root { --bg:#0b0f14; --card:#121821; --txt:#e6e6e6; --muted:#9aa4b2; --primary:#1e88ff; }
+    :root {
+      --bg:#0b0f14; --card:#121821; --txt:#e6e6e6; --muted:#9aa4b2; --primary:#1e88ff;
+      --gold:#f0b64b;
+    }
     *{box-sizing:border-box}
-    body{margin:0; font-family:system-ui,Arial; background:var(--bg); color:var(--txt); display:flex; min-height:100vh; align-items:center; justify-content:center}
-    .wrap{width:min(96vw,700px); padding:18px}
-    .card{background:var(--card); border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.35)}
-    h1{margin:0 0 10px; font-size:1.25rem}
+    body{
+      margin:0; font-family:system-ui,Arial; color:var(--txt);
+      min-height:100vh; display:flex; align-items:center; justify-content:center;
+      /* Fond "4 éléments" discret (sans images) */
+      background:
+        radial-gradient(1200px 800px at 50% -10%, rgba(255,215,128,.10), transparent 60%),   /* feu haut */
+        radial-gradient(900px 700px at 110% 30%, rgba(120,180,255,.10), transparent 60%),    /* eau droite */
+        radial-gradient(900px 700px at -10% 70%, rgba(160,255,190,.08), transparent 60%),    /* vent gauche */
+        radial-gradient(900px 700px at 50% 120%, rgba(220,180,120,.10), transparent 60%),    /* terre bas */
+        var(--bg);
+    }
+    .wrap{width:min(96vw,760px); padding:18px}
+    .card{background:var(--card); border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.35); position:relative; overflow:hidden}
+    h1{
+      margin:0 0 10px; font-size:1.25rem;
+      background: linear-gradient(90deg,#ffd27a,#ffe8b3,#ffd27a);
+      -webkit-background-clip:text; background-clip:text; color:transparent;
+    }
     .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
     input,button,select{font-size:1rem; padding:10px 12px; border-radius:12px; border:1px solid #263041; background:#0f141b; color:var(--txt)}
     input{min-width:190px}
     button{cursor:pointer; border:0; background:#202938}
-    button.primary{background:var(--primary); color:white; border:0}
+    button.primary{background:var(--gold); color:#1a1307; font-weight:700}
     .muted{color:var(--muted); font-size:.9rem}
     .grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:14px}
-    .panel{background:#0f141b; border:1px solid #263041; border-radius:14px; padding:14px}
+    .panel{background:#0f141b; border:1px solid #263041; border-radius:14px; padding:14px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.03), 0 10px 30px rgba(0,0,0,.25)}
     .panel h2{margin:0 0 6px; font-size:1.05rem}
-    .value{font-size:2.8rem; font-weight:700; margin:8px 0 12px; text-align:center; font-family:monospace; letter-spacing:2px}
+    .value{font-size:2.8rem; font-weight:700; margin:8px 0 12px; text-align:center}
     .btns{display:flex; gap:8px; justify-content:center; flex-wrap:wrap}
     .ok{color:#9cff9c}
     .err{color:#ff9c9c}
     .code{font-family:monospace; background:#0e1826; padding:6px 10px; border-radius:8px; border:1px dashed #2b3c54}
+
+    /* === Logo en haut à gauche === */
+    .branding{
+      position:absolute; top:10px; left:10px; display:flex; align-items:center; gap:10px;
+      z-index:2; padding:6px 10px; border-radius:12px; background:rgba(0,0,0,.25); backdrop-filter: blur(4px);
+    }
+    .branding img{height:32px; width:auto; display:block}
+    .branding .mark{font-weight:800; letter-spacing:.3px; color:#ffd27a}
+
+    /* === Roue animée (haut-droite) === */
+    .wheel-wrap{
+      position:absolute; top:10px; right:10px; z-index:2; display:flex; flex-direction:column; align-items:flex-end; gap:8px;
+    }
+    .wheel-controls{display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end}
+    .wheel{
+      width:86px; height:86px; border-radius:50%;
+      box-shadow:0 6px 18px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.06);
+      overflow:hidden; position:relative; background:#0d1420;
+      animation: spin linear infinite; animation-duration: 180s; /* 180s = 1 tour */
+    }
+    .wheel.pause{ animation-play-state: paused; }
+    /* 4 quarts en pur CSS */
+    .q{position:absolute; inset:0}
+    .q:before{content:""; position:absolute; inset:0; border-radius:50%}
+    .q1:before{background: conic-gradient(from 0deg, rgba(255,110,64,.9) 0 90deg, transparent 90deg 360deg);}   /* Feu */
+    .q2:before{background: conic-gradient(from 90deg, rgba(64,160,255,.9) 0 90deg, transparent 90deg 360deg);}  /* Eau */
+    .q3:before{background: conic-gradient(from 180deg, rgba(160,255,200,.9) 0 90deg, transparent 90deg 360deg);}/* Vent */
+    .q4:before{background: conic-gradient(from 270deg, rgba(210,170,120,.9) 0 90deg, transparent 90deg 360deg);}/* Terre */
+    .hub{position:absolute; inset:8px; border-radius:50%; background:#0b0f14; box-shadow: inset 0 0 12px rgba(0,0,0,.6)}
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width:560px){
+      .wheel{width:70px; height:70px}
+      .branding{transform: scale(.95); transform-origin: top left}
+    }
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="card">
+      <!-- LOGO / MARQUE -->
+      <div class="branding" title="Flophilclo">
+        <!-- Mets ton logo à la racine du dépôt sous ce nom : logo-flophilclo.png -->
+        <img src="logo-flophilclo.png" alt="Logo Flophilclo" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline'">
+        <span class="mark" style="display:none">Flophilclo</span>
+      </div>
+
+      <!-- ROUE (animation & contrôles) -->
+      <div class="wheel-wrap">
+        <div class="wheel-controls">
+          <button id="toggleWheel">Masquer la roue</button>
+          <button id="pausePlay">Pause</button>
+          <select id="speedSel" title="Vitesse">
+            <option value="180">180 s / tour</option>
+            <option value="120">120 s / tour</option>
+            <option value="60">60 s / tour</option>
+            <option value="30">30 s / tour</option>
+          </select>
+        </div>
+        <div id="wheel" class="wheel" aria-label="Roue des éléments">
+          <div class="q q1"></div>
+          <div class="q q2"></div>
+          <div class="q q3"></div>
+          <div class="q q4"></div>
+          <div class="hub"></div>
+        </div>
+      </div>
+
       <h1>Compteurs synchronisés – Flophilclo</h1>
       <div class="muted" id="status">Prêt – crée une salle ou rejoins-en une.</div>
 
+      <!-- Création / connexion à une salle -->
       <div class="row" style="margin-top:10px;">
         <button id="create" class="primary">Créer une salle</button>
         <input id="code" placeholder="Code salle (ex: 4M7QK9)" />
@@ -48,6 +129,7 @@
         &nbsp;•&nbsp; Dernière MAJ : <span id="last">—</span>
       </div>
 
+      <!-- Deux compteurs liés -->
       <div class="grid">
         <div class="panel">
           <h2>Joueur 1</h2>
@@ -74,18 +156,18 @@
       </div>
 
       <div class="muted" style="margin-top:10px;">
-        Astuce : un téléphone **crée** la salle, l’autre **rejoint** avec le code.  
+        Astuce : un téléphone **crée** la salle (bouton doré), l’autre **entre le code** puis « Rejoindre ».  
         Seul J1 peut modifier J1, et seul J2 peut modifier J2.
       </div>
     </div>
   </div>
 
+  <!-- Firebase via CDN -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import {
-      getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction, serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
+    // Config validée
     const firebaseConfig = {
       apiKey: "AIzaSyDB534z5JxxP8Sa29wQ9QjjOsHgK1Tfo1k",
       authDomain: "flophilclo-compteur.firebaseapp.com",
@@ -98,6 +180,7 @@
     const app = initializeApp(firebaseConfig);
     const db  = getFirestore(app);
 
+    // UI refs
     const $status = document.getElementById("status");
     const $roomCode = document.getElementById("roomCode");
     const $last = document.getElementById("last");
@@ -108,8 +191,17 @@
     const $create = document.getElementById("create");
     const $join = document.getElementById("join");
 
+    // Roue refs
+    const wheel = document.getElementById("wheel");
+    const toggleWheelBtn = document.getElementById("toggleWheel");
+    const pausePlayBtn = document.getElementById("pausePlay");
+    const speedSel = document.getElementById("speedSel");
+
     let roomRef = null;
     let unsub = null;
+
+    // --- Helpers UI ---
+    const fmt4 = (n)=> String(n ?? 0).padStart(4,"0");
 
     function randCode(len=6){
       const chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -141,9 +233,8 @@
       unsub = onSnapshot(roomRef, (snap)=>{
         if(!snap.exists()) return;
         const d = snap.data();
-        // affichage à 4 chiffres
-        $v1.textContent = String(d.j1 || 0).padStart(4, "0");
-        $v2.textContent = String(d.j2 || 0).padStart(4, "0");
+        $v1.textContent = fmt4(d.j1 || 0);
+        $v2.textContent = fmt4(d.j2 || 0);
         $last.textContent = d.updatedAt?.toDate?.().toLocaleTimeString?.() ?? "—";
         $status.textContent = "Connecté à la salle « "+d.code+" »";
         $status.className = "ok";
@@ -188,6 +279,23 @@
 
     $create.addEventListener("click", createRoom);
     $join.addEventListener("click", ()=> joinRoom($code.value.trim()));
+
+    // --- Contrôles de la roue ---
+    toggleWheelBtn.addEventListener("click", ()=>{
+      const visible = wheel.style.display !== "none";
+      wheel.style.display = visible ? "none" : "block";
+      toggleWheelBtn.textContent = visible ? "Afficher la roue" : "Masquer la roue";
+    });
+
+    pausePlayBtn.addEventListener("click", ()=>{
+      const paused = wheel.classList.toggle("pause");
+      pausePlayBtn.textContent = paused ? "Lecture" : "Pause";
+    });
+
+    speedSel.addEventListener("change", ()=>{
+      const s = parseInt(speedSel.value,10) || 180;
+      wheel.style.animationDuration = s + "s";
+    });
   </script>
 </body>
 </html>
