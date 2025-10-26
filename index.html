@@ -26,14 +26,6 @@
       z-index:2;
     }
 
-    /* 🌟 LÉGER VOILE pour lisibilité */
-    .card::before{
-      content:"";
-      position:absolute; inset:0; z-index:1;
-      pointer-events:none;
-      background: radial-gradient(80% 60% at 50% 20%, rgba(0,0,0,.10), rgba(0,0,0,.35));
-    }
-
     h1{
       margin:0 0 10px; font-size:1.25rem;
       background: linear-gradient(90deg,#ffd27a,#ffe8b3,#ffd27a);
@@ -66,22 +58,25 @@
     .branding img{height:32px; width:auto; display:block}
     .branding .mark{font-weight:800; letter-spacing:.3px; color:#ffd27a}
 
-    /* 🌄 IMAGE TOURNANTE ENTIÈRE ET LUMINEUSE */
+    /* 🌄 IMAGE ENTIÈRE CLAIRE ET CENTRÉE */
     .image-rotation{
       position:absolute; top:0; left:0; width:100%; height:100%;
       overflow:hidden;
       z-index:0;
-      opacity:1; /* ✅ Pleine visibilité */
+      opacity:1;
       pointer-events:none;
     }
     .image-rotation img{
       position:absolute;
       top:50%; left:50%;
       transform:translate(-50%, -50%) rotate(0deg);
-      width:auto; height:90%;
+      width:auto;
+      height:auto;
+      max-width:100%;
+      max-height:100%;
       object-fit:contain;
       transform-origin:center center;
-      filter: brightness(1.2) contrast(1.05) saturate(1.1); /* 💡 boost */
+      filter: brightness(1.6) contrast(1.2) saturate(1.3); /* 🌟 très lumineux */
       animation: spin 180s linear infinite;
     }
     .image-rotation.pause img{ animation-play-state: paused; }
@@ -93,16 +88,16 @@
       background:rgba(0,0,0,.3); border-radius:12px; padding:6px 10px; backdrop-filter:blur(4px);
     }
 
-    /* Dé */
-    .diceBox{margin-top:16px; text-align:center}
+    /* Dé visible et cliquable */
+    .diceBox{margin-top:16px; text-align:center; position:relative; z-index:4;}
     .diceFace{
       display:inline-flex; align-items:center; justify-content:center;
       width:68px; height:68px; margin-top:8px;
       border-radius:12px; border:1px solid #2a3446; background:#0e1622;
       font-size:2rem; font-weight:800; box-shadow: inset 0 0 10px rgba(0,0,0,.35);
+      color:#fff;
     }
 
-    /* Footer */
     .foot{
       position:absolute; left:14px; bottom:10px; color:#ccb06a; font-size:.85rem; opacity:.9;
       text-shadow:0 1px 0 rgba(0,0,0,.4);
@@ -114,7 +109,7 @@
   <div class="wrap">
     <div class="card">
 
-      <!-- 🌈 Image des 4 éléments qui tourne -->
+      <!-- 🌈 Image complète -->
       <div id="rotatingImage" class="image-rotation">
         <img src="elements.png" alt="Image des éléments Flophilclo"
              onerror="this.onerror=null; this.src='elements.jpg';">
@@ -182,7 +177,7 @@
             <button data-act="J2:reset">Reset</button>
           </div>
 
-          <!-- Dé -->
+          <!-- 🎲 Dé -->
           <div class="diceBox">
             <button id="roll" class="primary">🎲 Lancer le dé</button>
             <div id="die" class="diceFace">—</div>
@@ -191,15 +186,14 @@
       </div>
 
       <div class="muted" style="margin-top:10px;">
-        Astuce : un téléphone **crée** la salle (bouton doré), l’autre **entre le code** puis « Rejoindre ».  
-        Seul J1 peut modifier J1, et seul J2 peut modifier J2.
+        Astuce : un téléphone **crée** la salle (bouton doré), l’autre **entre le code** puis « Rejoindre ».
       </div>
 
       <div class="foot">© 2025 Flophilclo</div>
     </div>
   </div>
 
-  <!-- Firebase + script -->
+  <!-- Firebase -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
     import { getFirestore, doc, getDoc, setDoc, onSnapshot, runTransaction, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
